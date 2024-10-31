@@ -38,7 +38,13 @@ class LoloAuthProvider {
   async logout() {
     if (localStorage.getItem('token')) {
       localStorage.removeItem("token");
-      // await userManager.signoutRedirect();
+
+      userManager.signoutRedirect({
+        extraQueryParams: {
+          client_id: userManager.settings.client_id,
+          logout_uri: window.location.origin
+        }
+      });
     }
   }
 
@@ -125,7 +131,7 @@ class LoloAuthProvider {
 
       const json = await res.json();
       localStorage.setItem('token', json.id_token);
-      window.dispatchEvent(new Event('tokenUpdated'));
+      window.location.href = window.location.origin;
 
     } catch (err) {
       console.error(err);
