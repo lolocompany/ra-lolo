@@ -1,18 +1,29 @@
 import { UserManager } from "oidc-client-ts";
+import { CognitoUserPool, CognitoUser } from "amazon-cognito-identity-js";
 import { fetchUtils } from 'react-admin';
 import { useRefresh } from 'react-admin';
 
-const tokenUrl = 'https://be.dev.pvpc.io/dpVtXAhC1Phki2poDN4ncw/cognito-token';
+const tokenUrl = 'https://eu-1.int.lolo.co/tufEqysYEgzBQyrUrAhkzb/cognito-token';
 const redirectUri = window.location.origin + '/auth-callback';
 
 const userManager = new UserManager({
   authority: 'https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_lQin10bBN',
   client_id: '3dl8ndi1mkmn7r0kk6iconjc6q',
   redirect_uri: redirectUri,
+  silent_redirect_uri: window.location.origin + '/silent-renew.html',
   response_type: "code",
-  scope: [ 'openid' ]
+  monitorSession: true,
+  automaticSilentRenew: true,
+  accessTokenExpiringNotificationTimeInSeconds: 295,
+  scope: 'openid aws.cognito.signin.user.admin',
+  disablePKCE: true,
 });
-
+userManager.events.addUserSessionChanged(() => {
+  console.log('user loaded')
+})
+userManager.events.addUserSignedIn(() => {
+  console.log('user signed in')
+})
 class LoloAuthProvider {
   baseUrl = null;
   updateAuth = null;
@@ -24,7 +35,6 @@ class LoloAuthProvider {
   /*
    * login
    */
-
   async login() {
     if (!localStorage.getItem('token')) {
       await userManager.signinRedirect();
@@ -34,11 +44,12 @@ class LoloAuthProvider {
   /*
    * logout
    */
-
   async logout() {
     if (localStorage.getItem('token')) {
+      // await this.globalSignout(); 
       localStorage.removeItem("token");
 
+      // Perform local OIDC logout
       userManager.signoutRedirect({
         extraQueryParams: {
           client_id: userManager.settings.client_id,
@@ -51,40 +62,34 @@ class LoloAuthProvider {
   /*
    * checkAuth
    */
-
   async checkAuth() {
     if (localStorage.getItem('token')) {
       return true;
     }
-    
+
     throw new Error();
   }
 
   /*
    * checkError
    */
-
   async checkError(err) {
     const status = err.status;
 
     if (status === 401 || status === 403) {
       console.log('checkError', status);
-      // localStorage.removeItem('token');
-      // throw new Error();
     }
   }
 
   /*
    * getPermissions
    */
-
   async getPermissions() {
   }
 
   /*
    * getIdentity
    */
-
   async getIdentity() {
     const token = localStorage.getItem('token');
 
@@ -93,17 +98,16 @@ class LoloAuthProvider {
     }
 
     const claims = JSON.parse(atob(token.split(".")[1]));
-    
+
     return {
       id: claims['cognito:username'],
       fullName: claims['email']
-    }
+    };
   }
 
   /*
    * handleCallback
    */
-
   async handleCallback() {
     const { searchParams } = new URL(window.location.href);
     const code = searchParams.get("code");
@@ -118,19 +122,20 @@ class LoloAuthProvider {
       const res = await fetch(tokenUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           code,
-          code_verifier, 
+          code_verifier,
           redirect_uri: redirectUri
         }),
       });
-  
+
       if (!res.ok) {
         throw new Error('POST /cognito-token failed');
       }
 
       const json = await res.json();
       localStorage.setItem('token', json.id_token);
+      localStorage.setItem('access_token', json.access_token);
       window.location.href = window.location.origin;
 
     } catch (err) {
@@ -140,7 +145,7 @@ class LoloAuthProvider {
     userManager.clearStaleState();
     cleanup();
   }
-};
+}
 
 const cleanup = () => {
   window.history.replaceState(
