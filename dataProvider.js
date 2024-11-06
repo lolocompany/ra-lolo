@@ -2,198 +2,146 @@ import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 import userManager from './userManager';
 
-/*
- * LoloDataProvider
- */
-
 class LoloDataProvider {
-  constructor(baseUrl, opts = {}) {
+  constructor(baseUrl, options = {}) {
     this.baseUrl = baseUrl;
-    this.opts = opts;
+    this.options = options;
   }
 
-  /*
-   * getList
-   */
-
-  async getList(resource, params, queryOpts) {
+  async getList(resource, params, additionalQueryParams = {}) {
     const {
       page = 1,
-      perPage = 15
+      perPage = 15,
     } = params.pagination || {};
 
     const {
       field = 'createdAt',
-      order = 'desc'
+      order = 'desc',
     } = params.sort || {};
 
-    const qs = Object.entries(params.filter).reduce(
-      (memo, [k, v]) => {
-        memo[`q[${k}]`] = v;
-        return memo;
-      },
-      {}
-    );
+    const filters = Object.entries(params.filter || {}).reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {});
 
     const query = {
       limit: perPage,
-      sort: field + ' ' + order.toLowerCase(),
+      sort: `${field} ${order.toLowerCase()}`,
       offset: (page - 1) * perPage,
-      ...qs,
-      ...queryOpts
+      ...filters,
+      ...additionalQueryParams,
     };
 
-    const url = '/' + resource + '?' + stringify(query);
-
+    const url = `/${resource}?${stringify(query)}`;
     const { data } = await this.sendRequest(url);
     return this.buildListResponse(data, resource);
   }
 
-  /*
-   * getOne
-   */
-
   getOne(resource, params) {
-    return this.sendRequest(`/${resource}/${params.id}`);
+    const url = `/${resource}/${params.id}`;
+    return this.sendRequest(url);
   }
-
-  /*
-   * getMany
-   */
 
   getMany(resource, params) {
-    params.filter = { id: params.ids };
-
-    return this.getList(resource, params, {
+    const filterParams = { filter: { id: params.ids } };
+    return this.getList(resource, filterParams, {
       qor: 1,
       qre: 0,
-      limit: 500
+      limit: 500,
     });
   }
 
-  /*
-   * getManyReference
-   */
-
-  getManyReference(resource, { target, ...params }) {
-    params = {
-      ...params,
+  getManyReference(resource, params) {
+    const { target, id, ...otherParams } = params;
+    const filterParams = {
+      ...otherParams,
       filter: {
-        ...params.filter,
-        [target]: params.id
-      }
+        ...otherParams.filter,
+        [target]: id,
+      },
     };
-
-    return this.getList(resource, params, {
-      qor: 1,
-    });
+    return this.getList(resource, filterParams, { qor: 1 });
   }
-
-  /*
-   * create
-   */
 
   create(resource, params) {
-    return this.sendRequest(`/${resource}`, {
+    const url = `/${resource}`;
+    return this.sendRequest(url, {
       method: 'POST',
       body: JSON.stringify(params.data),
     });
   }
 
-  /*
-   * update
-   */
-
   update(resource, params) {
-    return this.sendRequest(`/${resource}/${params.id}`, {
+    const url = `/${resource}/${params.id}`;
+    return this.sendRequest(url, {
       method: 'PUT',
       body: JSON.stringify(params.data),
     });
   }
 
-  /*
-   * delete
-   */
-
   delete(resource, params) {
-    return this.sendRequest(`/${resource}/${params.id}`, {
+    const url = `/${resource}/${params.id}`;
+    return this.sendRequest(url, {
       method: 'DELETE',
     });
   }
 
-  /*
-   * sendRequest
-   */
-
-  async sendRequest(url, opts = {}) {
-    if (url.startsWith('/')) {
-      url = this.baseUrl + url;
-    }
-
-    await setLoloHeaders(opts);
+  async sendRequest(url, options = {}) {
+    const fullUrl = url.startsWith('/') ? `${this.baseUrl}${url}` : url;
+    await setLoloHeaders(options);
 
     try {
-      const { json: data } = await fetchUtils.fetchJson(url, opts);
+      const { json: data } = await fetchUtils.fetchJson(fullUrl, options);
       return { data };
-
-    } catch (err) {
-      if (err.body?.error) {
-        err.message = err.body.error;
+    } catch (error) {
+      if (error.body?.error) {
+        error.message = error.body.error;
       }
-
-      throw err;
+      throw error;
     }
   }
 
   buildListResponse(data, resource) {
-    const { opts } = this;
-
-    const itemsKey = typeof opts.itemsKey === 'function' ?
-      opts.itemsKey(resource) : (
-        opts.itemsKey || 'items'
-      );
+    const itemsKey = typeof this.options.itemsKey === 'function'
+      ? this.options.itemsKey(resource)
+      : this.options.itemsKey || 'items';
 
     if (data[itemsKey]) {
-      // crud collection response
       return {
         data: data[itemsKey],
-        total: data.total
+        total: data.total,
       };
-
     } else if (Array.isArray(data)) {
-      // accounting
       return {
-        data: data.map((it, i) => ({ id: i, ...it })),
-        total: data.length
-      }
+        data: data.map((item, index) => ({ id: index, ...item })),
+        total: data.length,
+      };
     } else {
-      throw new Error('unsupported list response', typeof data);
+      throw new Error(`Unsupported list response type: ${typeof data}`);
     }
   }
 }
 
-/*
- * setLoloHeaders
- */
-
-const setLoloHeaders = async opts => {
+const setLoloHeaders = async (options) => {
   const user = await userManager.getUser();
-  const token = user.id_token;
+  const token = user?.id_token;
   const accountId = localStorage.getItem('accountId');
 
-  if (!opts.headers) {
-    opts.headers = new Headers();
+  if (!options.headers) {
+    options.headers = new Headers();
   }
 
-  opts.headers.set('authorization', token);
+  if (token) {
+    options.headers.set('Authorization', `Bearer ${token}`);
+  }
 
   if (accountId) {
-    opts.headers.set('lolo-account-id', accountId);
+    options.headers.set('Lolo-Account-Id', accountId);
   }
-}
+};
 
-const dataProvider = (baseUrl, opts) => {
-  return new LoloDataProvider(baseUrl, opts);
+const dataProvider = (baseUrl, options) => {
+  return new LoloDataProvider(baseUrl, options);
 };
 
 export default dataProvider;
