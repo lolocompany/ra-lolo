@@ -1,5 +1,6 @@
 import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
+import userManager from './userManager';
 
 /*
  * LoloDataProvider
@@ -30,7 +31,7 @@ class LoloDataProvider {
       (memo, [k, v]) => {
         memo[`q[${k}]`] = v;
         return memo;
-      }, 
+      },
       {}
     );
 
@@ -129,12 +130,12 @@ class LoloDataProvider {
       url = this.baseUrl + url;
     }
 
-    setLoloHeaders(opts);
+    await setLoloHeaders(opts);
 
     try {
       const { json: data } = await fetchUtils.fetchJson(url, opts);
       return { data };
-    
+
     } catch (err) {
       if (err.body?.error) {
         err.message = err.body.error;
@@ -158,7 +159,7 @@ class LoloDataProvider {
         data: data[itemsKey],
         total: data.total
       };
-    
+
     } else if (Array.isArray(data)) {
       // accounting
       return {
@@ -175,8 +176,9 @@ class LoloDataProvider {
  * setLoloHeaders
  */
 
-const setLoloHeaders = opts => {
-  const token = localStorage.getItem('token');
+const setLoloHeaders = async opts => {
+  const user = await userManager.getUser();
+  const token = user.id_token;
   const accountId = localStorage.getItem('accountId');
 
   if (!opts.headers) {
