@@ -1,6 +1,6 @@
 import { UserManager } from "oidc-client-ts";
 
-const REDIRECT_URI = window.location.origin + '/auth-callback';
+const REDIRECT_URI = `${window.location.origin}/auth-callback`;
 
 const userManager = new UserManager({
   authority: 'https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_lQin10bBN',
@@ -14,15 +14,14 @@ const userManager = new UserManager({
 });
 
 userManager.events.addUserSessionChanged(() => {
-  console.log('user loaded')
-})
-userManager.events.addUserSignedIn(() => {
-  console.log('user signed in')
-})
-class LoloAuthProvider {
-  baseUrl = null;
-  updateAuth = null;
+  console.log('User session changed');
+});
 
+userManager.events.addUserSignedIn(() => {
+  console.log('User signed in');
+});
+
+class LoloAuthProvider {
   constructor(baseUrl) {
     this.baseUrl = baseUrl;
   }
@@ -33,7 +32,6 @@ class LoloAuthProvider {
       await userManager.signinRedirect();
     }
   }
-
 
   async logout() {
     const user = await userManager.getUser();
@@ -58,38 +56,23 @@ class LoloAuthProvider {
     throw new Error('User is not authenticated');
   }
 
-  /*
-   * checkError
-   */
-  async checkError(err) {
-    const status = err.status;
-
-    if (status === 401 || status === 403) {
-      console.log('checkError', status);
+  async checkError(error) {
+    if (error.status === 401 || error.status === 403) {
+      console.log('Authentication error', error.status);
     }
   }
 
-  /*
-   * getPermissions
-   */
   async getPermissions() {
+    // Implement permissions logic if needed
   }
 
-  /*
-   * getIdentity
-   */
   async getIdentity() {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      return;
-    }
-
-    const claims = JSON.parse(atob(token.split(".")[1]));
+    const user = await userManager.getUser();
+    if (!user) return;
 
     return {
-      id: claims['cognito:username'],
-      fullName: claims['email']
+      id: user.profile['cognito:username'],
+      fullName: user.profile['email'],
     };
   }
 
@@ -105,9 +88,6 @@ class LoloAuthProvider {
     }
     this.cleanupUrl();
   }
-  cleanupUrl() {
-    window.history.replaceState({}, window.document.title, window.location.origin);
-  }
 
   setToken(user) {
     localStorage.setItem('token', user.id_token);
@@ -118,9 +98,10 @@ class LoloAuthProvider {
     localStorage.removeItem('token');
     localStorage.removeItem('access_token');
   }
+
+  cleanupUrl() {
+    window.history.replaceState({}, window.document.title, window.location.origin);
+  }
 }
 
-
-export default baseUrl => {
-  return new LoloAuthProvider(baseUrl);
-};
+export default (baseUrl) => new LoloAuthProvider(baseUrl);
