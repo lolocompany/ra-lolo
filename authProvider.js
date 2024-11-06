@@ -1,25 +1,4 @@
-import { UserManager } from "oidc-client-ts";
-
-const REDIRECT_URI = `${window.location.origin}/auth-callback`;
-
-const userManager = new UserManager({
-  authority: 'https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_lQin10bBN',
-  client_id: '742fcmsd74enql25761e8cmm6',
-  redirect_uri: REDIRECT_URI,
-  response_type: "code",
-  monitorSession: true,
-  automaticSilentRenew: true,
-  accessTokenExpiringNotificationTimeInSeconds: 295,
-  scope: 'openid aws.cognito.signin.user.admin',
-});
-
-userManager.events.addUserSessionChanged(() => {
-  console.log('User session changed');
-});
-
-userManager.events.addUserSignedIn(() => {
-  console.log('User signed in');
-});
+import userManager from './userManager'; 
 
 class LoloAuthProvider {
   constructor(baseUrl) {
@@ -36,14 +15,12 @@ class LoloAuthProvider {
   async logout() {
     const user = await userManager.getUser();
 
-    if (localStorage.getItem('token') || user) {
-      this.clearToken();
-
+    if (user) {
       userManager.signoutRedirect({
         extraQueryParams: {
           client_id: userManager.settings.client_id,
-          logout_uri: window.location.origin
-        }
+          logout_uri: window.location.origin,
+        },
       });
     }
   }
@@ -80,23 +57,12 @@ class LoloAuthProvider {
     try {
       const user = await userManager.signinRedirectCallback();
       if (user) {
-        this.setToken(user);
         window.location.href = window.location.origin;
       }
     } catch (error) {
       console.error('Error handling callback:', error);
     }
     this.cleanupUrl();
-  }
-
-  setToken(user) {
-    localStorage.setItem('token', user.id_token);
-    localStorage.setItem('access_token', user.access_token);
-  }
-
-  clearToken() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('access_token');
   }
 
   cleanupUrl() {
