@@ -4,19 +4,18 @@ import { fetchUtils } from 'react-admin';
 import { useRefresh } from 'react-admin';
 
 const tokenUrl = 'https://eu-1.int.lolo.co/tufEqysYEgzBQyrUrAhkzb/cognito-token';
-const redirectUri = window.location.origin + '/auth-callback';
+const REDIRECT_URI = window.location.origin + '/auth-callback';
 
 const userManager = new UserManager({
   authority: 'https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_lQin10bBN',
   client_id: '3dl8ndi1mkmn7r0kk6iconjc6q',
-  redirect_uri: redirectUri,
-  silent_redirect_uri: window.location.origin + '/silent-renew.html',
+  redirect_uri: REDIRECT_URI,
   response_type: "code",
   monitorSession: true,
   automaticSilentRenew: true,
   accessTokenExpiringNotificationTimeInSeconds: 295,
   scope: 'openid aws.cognito.signin.user.admin',
-  disablePKCE: true,
+  disablePKCE: true
 });
 userManager.events.addUserSessionChanged(() => {
   console.log('user loaded')
@@ -125,7 +124,7 @@ class LoloAuthProvider {
         body: JSON.stringify({
           code,
           code_verifier,
-          redirect_uri: redirectUri
+          redirect_uri: REDIRECT_URI
         }),
       });
 
