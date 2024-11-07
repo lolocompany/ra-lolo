@@ -1,4 +1,4 @@
-import userManager from './userManager'; 
+import userManager from './userManager';
 
 class LoloAuthProvider {
   constructor(baseUrl) {
@@ -16,6 +16,7 @@ class LoloAuthProvider {
     const user = await userManager.getUser();
 
     if (user) {
+      localStorage.setItem('accountId', null);
       userManager.signoutRedirect({
         extraQueryParams: {
           client_id: userManager.settings.client_id,
