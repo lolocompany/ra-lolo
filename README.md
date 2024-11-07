@@ -1,5 +1,7 @@
 # ra-lolo
 
+[![npm version](https://img.shields.io/npm/v/@lolocompany/ra-lolo)](https://www.npmjs.com/package/@lolocompany/ra-lolo)
+
 **ra-lolo** is a set of providers compatible with [react-admin](https://github.com/marmelab/react-admin), specifically designed to integrate with Amazon Cognito. It provides both an authentication provider and a data provider to enable seamless backend communication for applications using react-admin.
 
 ## Features
@@ -116,3 +118,4 @@ If you have any questions, suggestions, or issues, feel free to open an issue on
 ---
 
 We hope **ra-lolo** makes your journey with react-admin and Amazon Cognito easier and more efficient. Give it a try, and let us know how it works for you!
+
