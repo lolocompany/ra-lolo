@@ -16,7 +16,7 @@ class LoloAuthProvider {
     const user = await userManager.getUser();
 
     if (user) {
-      localStorage.setItem('accountId', null);
+      localStorage.removeItem('accountId');
       userManager.signoutRedirect({
         extraQueryParams: {
           client_id: userManager.settings.client_id,
