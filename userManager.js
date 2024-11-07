@@ -9,7 +9,7 @@ const userManager = new UserManager({
   client_id: CLIENT_ID,
   redirect_uri: REDIRECT_URI,
   response_type: "code",
-  scope: 'openid aws.cognito.signin.user.admin',
+  scope: 'openid',
 });
 
 export default userManager;
