@@ -1,12 +1,12 @@
 {
-  "name": "ra-lolo",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@lolocompany/ra-lolo",
+  "version": "0.1.0",
+  "description": "A library to handle auth and data layer compatible with react-admin",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Lolo",
   "license": "ISC",
   "dependencies": {
     "oidc-client-ts": "^3.1.0"
