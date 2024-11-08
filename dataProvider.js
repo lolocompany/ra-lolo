@@ -20,7 +20,7 @@ class LoloDataProvider {
     } = params.sort || {};
 
     const filters = Object.entries(params.filter || {}).reduce((acc, [key, value]) => {
-      acc[key] = value;
+      acc[`q[${key}]`] = value;
       return acc;
     }, {});
 
