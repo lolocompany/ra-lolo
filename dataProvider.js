@@ -88,7 +88,7 @@ class LoloDataProvider {
 
   async sendRequest(url, options = {}) {
     const fullUrl = url.startsWith('/') ? `${this.baseUrl}${url}` : url;
-    await setLoloHeaders(options);
+    await setLoloHeaders(options, this.options.selectedAccount);
 
     try {
       const { json: data } = await fetchUtils.fetchJson(fullUrl, options);
@@ -122,10 +122,10 @@ class LoloDataProvider {
   }
 }
 
-const setLoloHeaders = async (options) => {
+const setLoloHeaders = async (options, selectedAccount) => {
   const user = await userManager.getUser();
   const token = user?.id_token;
-  const accountId = localStorage.getItem('accountId');
+  const accountId = selectedAccount || localStorage.getItem('accountId');
 
   if (!options.headers) {
     options.headers = new Headers();
