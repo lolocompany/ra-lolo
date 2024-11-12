@@ -34,7 +34,6 @@ class LoloAuthProvider {
   }
 
   async checkError(error) {
-    // if (error.status === 401 || error.status === 403) {
     if (error.status === 401) {
       console.log("Authentication error", error.status);
       return Promise.reject();
@@ -84,4 +83,6 @@ class LoloAuthProvider {
   }
 }
 
-export default () => new LoloAuthProvider();
+const authProviderInstance = new LoloAuthProvider();
+
+export default authProviderInstance;
