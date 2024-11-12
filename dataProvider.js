@@ -1,6 +1,6 @@
-import { fetchUtils } from 'react-admin';
-import { stringify } from 'query-string';
-import userManager from './userManager';
+import { fetchUtils } from "react-admin";
+import { stringify } from "query-string";
+import userManager from "./userManager";
 
 class LoloDataProvider {
   constructor(baseUrl, options = {}) {
@@ -9,20 +9,17 @@ class LoloDataProvider {
   }
 
   async getList(resource, params, additionalQueryParams = {}) {
-    const {
-      page = 1,
-      perPage = 15,
-    } = params.pagination || {};
+    const { page = 1, perPage = 15 } = params.pagination || {};
 
-    const {
-      field = 'createdAt',
-      order = 'desc',
-    } = params.sort || {};
+    const { field = "createdAt", order = "desc" } = params.sort || {};
 
-    const filters = Object.entries(params.filter || {}).reduce((acc, [key, value]) => {
-      acc[`q[${key}]`] = value;
-      return acc;
-    }, {});
+    const filters = Object.entries(params.filter || {}).reduce(
+      (acc, [key, value]) => {
+        acc[`q[${key}]`] = value;
+        return acc;
+      },
+      {}
+    );
 
     const query = {
       limit: perPage,
@@ -66,7 +63,7 @@ class LoloDataProvider {
   create(resource, params) {
     const url = `/${resource}`;
     return this.sendRequest(url, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params.data),
     });
   }
@@ -74,7 +71,7 @@ class LoloDataProvider {
   update(resource, params) {
     const url = `/${resource}/${params.id}`;
     return this.sendRequest(url, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params.data),
     });
   }
@@ -82,12 +79,12 @@ class LoloDataProvider {
   delete(resource, params) {
     const url = `/${resource}/${params.id}`;
     return this.sendRequest(url, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   async sendRequest(url, options = {}) {
-    const fullUrl = url.startsWith('/') ? `${this.baseUrl}${url}` : url;
+    const fullUrl = url.startsWith("/") ? `${this.baseUrl}${url}` : url;
     await setLoloHeaders(options, this.options.selectedAccount);
 
     try {
@@ -102,9 +99,10 @@ class LoloDataProvider {
   }
 
   buildListResponse(data, resource) {
-    const itemsKey = typeof this.options.itemsKey === 'function'
-      ? this.options.itemsKey(resource)
-      : this.options.itemsKey || 'items';
+    const itemsKey =
+      typeof this.options.itemsKey === "function"
+        ? this.options.itemsKey(resource)
+        : this.options.itemsKey || "items";
 
     if (data[itemsKey]) {
       return {
@@ -125,18 +123,18 @@ class LoloDataProvider {
 const setLoloHeaders = async (options, selectedAccount) => {
   const user = await userManager.getUser();
   const token = user?.id_token;
-  const accountId = selectedAccount || localStorage.getItem('accountId');
+  const accountId = selectedAccount || localStorage.getItem("accountId");
 
   if (!options.headers) {
     options.headers = new Headers();
   }
 
   if (token) {
-    options.headers.set('Authorization', `Bearer ${token}`);
+    options.headers.set("Authorization", `Bearer ${token}`);
   }
 
   if (accountId) {
-    options.headers.set('Lolo-Account-Id', accountId);
+    options.headers.set("Lolo-Account-Id", accountId);
   }
 };
 
