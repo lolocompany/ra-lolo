@@ -1,15 +1,25 @@
-const { JSCodeshift } = require("jscodeshift");
+export default function transform(
+  root,
+  jscodeshift,
+  selectedComponents,
+  resource
+) {
+  const j = jscodeshift;
 
-module.exports = function (fileInfo, api) {
-  const j = api.jscodeshift;
-  const root = j(fileInfo.source);
-
-  // Import the selected components to insert into the Datagrid
-  const selectedComponents = require("./selectedComponents.js");
   console.log("Looking for the Datagrid node...");
 
   // Find the Datagrid component in the profiles resource
   const datagridNode = root
+    .find(j.JSXElement, {
+      openingElement: { name: { name: "Resource" } },
+    })
+    .filter((path) =>
+      path.node.openingElement.attributes.some((attr) =>
+        attr.name &&
+        attr.name.name === "name" &&
+        attr.value.value === `${resource}s`
+      )
+    )
     .find(j.JSXElement, {
       openingElement: {
         name: {
@@ -22,7 +32,7 @@ module.exports = function (fileInfo, api) {
 
   if (!datagridNode.length) {
     console.log("No Datagrid element found.");
-    return fileInfo.source;
+    return root.source;
   }
 
   // Wrap selected components in a fragment to allow multiple elements
@@ -31,7 +41,7 @@ module.exports = function (fileInfo, api) {
 
   if (!newChildren.length) {
     console.log("No valid JSX elements found in selectedComponents.");
-    return fileInfo.source;
+    return root.source;
   }
 
   // Insert the generated components as children inside the Datagrid
@@ -39,4 +49,4 @@ module.exports = function (fileInfo, api) {
 
   // Return the updated source code
   return root.toSource();
-};
+}
