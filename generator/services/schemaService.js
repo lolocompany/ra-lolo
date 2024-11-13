@@ -4,7 +4,7 @@ const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
 const requestOptions = {
   method: "GET",
   headers: new Headers({
-    authorization: `Bearer ${config.AUTH_TOKEN}`,
+    'Lolo-Api-Key': `${config.AUTH_TOKEN}`,
   }),
   redirect: "follow",
 };
