@@ -1,23 +1,8 @@
-import fs from "fs";
-
-const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
-const requestOptions = {
-  method: "GET",
-  headers: new Headers({
-    'Lolo-Api-Key': `${config.AUTH_TOKEN}`,
-  }),
-  redirect: "follow",
-};
+import { apiClient } from "../utils/apiClient.js";
 
 export const getSchema = async (resource) => {
-  const response = await fetch(
-    `https://api.dev.pvpc.io/i6JWTiQBFYV611VcNNWQLZ/schemas/${resource}`,
-    requestOptions
-  );
-  if (!response.ok) {
-    throw new Error(`Network response was not ok: ${response.statusText}`);
-  }
-  return await response.json();
+  const url = `https://api.dev.pvpc.io/i6JWTiQBFYV611VcNNWQLZ/schemas/${resource}`;
+  return await apiClient(url);
 };
 
 export const getStringProperties = (schema) => {
