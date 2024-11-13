@@ -19,12 +19,16 @@ export const promptFieldSelection = async (stringProperties) => {
       message: "Select the components you want to add to the Datagrid:",
       choices: stringProperties.map((prop) => ({
         name: `<TextField source='${prop.value}' />`,
-        value: `TextField ${prop.value}`,
+        value: prop.value,
       })),
     },
   ]);
-  return selectedFields.map((field) => {
-    const fieldName = field.split(" ")[1];
-    return `<TextField source='${fieldName}' />`;
-  });
+
+  const listViewFields = selectedFields.map((field) => `<TextField source='${field}' />`);
+  const createViewFields = selectedFields.map((field) => `<TextInput source='${field}' />`);
+
+  return {
+    listView: listViewFields,
+    createView: createViewFields,
+  };
 };
