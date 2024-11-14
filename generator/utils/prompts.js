@@ -10,33 +10,63 @@ export const promptResourceDetails = async () => {
   ]);
   return resource;
 };
-
 export const promptFieldSelection = async (properties) => {
   const { selectedFields } = await inquirer.prompt([
     {
       type: "checkbox",
       name: "selectedFields",
       message: "Select the components you want to add to the Datagrid:",
-      choices: properties.map((prop) => ({
-        name: `${prop.name} (${prop.component})`,
-        value: prop,
-      })),
+      choices: properties
+        .map((prop) => {
+          const isArrayEnum = prop.component === "CheckboxGroupInput";
+          const listViewComponent = isArrayEnum ? "ChipField" : (prop.component === "DateTimeInput" ? "DateField" : prop.component.replace("Input", "Field"));
+          
+          return {
+            name: `${prop.name} (${listViewComponent} / ${prop.component})`,
+            value: prop,
+          };
+        }),
     },
   ]);
 
-  const listViewFields = selectedFields.map((field) => {
-    const listViewComponent =
-      field.component === "DateTimeInput"
-        ? "DateField"
-        : field.component.replace("Input", "Field");
-    return `<${listViewComponent} source='${field.value}' />`;
+  const listViewFields = selectedFields
+    .filter((field) => field.component !== "NestedObjectSection" && field.component !== "ArrayObjectSimpleFormIterator") // Exclude nested objects and array of objects from List view
+    .map((field) => {
+      const isArrayEnum = field.component === "CheckboxGroupInput";
+      const listViewComponent = isArrayEnum ? "ChipField" : (field.component === "DateTimeInput" ? "DateField" : field.component.replace("Input", "Field"));
+      
+      return `<${listViewComponent} source='${field.value}' />`;
+    });
+
+  const createViewFields = selectedFields.map((field) => {
+    if (field.component === "NestedObjectSection") {
+      // Add a header for the object section, followed by nested fields in a Fragment
+      return (
+        `<>` +
+        `<h3>${field.name}</h3>` +
+        `${field.properties.map((nestedField) => `<${nestedField.component} source='${nestedField.value}' />`).join("\n")}` +
+        `</>`
+      );
+    }
+    
+    if (field.component === "ArrayObjectSimpleFormIterator") {
+      // Render array of objects with ArrayInput and SimpleFormIterator in a Fragment
+      return (
+        `<>` +
+        `<ArrayInput source="${field.value}">` +
+        `<SimpleFormIterator>` +
+        `${field.properties.map((nestedField) => `<${nestedField.component} source="${nestedField.value}" />`).join("\n")}` +
+        `</SimpleFormIterator>` +
+        `</ArrayInput>` +
+        `</>`
+      );
+    }
+
+    const isArrayEnum = field.component === "CheckboxGroupInput";
+    return isArrayEnum
+      ? `<CheckboxGroupInput source='${field.value}' choices={${JSON.stringify(field.choices)}} />`
+      : `<${field.component} source='${field.value}'${field.choices ? ` choices={${JSON.stringify(field.choices)}}` : ""} />`;
   });
-  const createViewFields = selectedFields.map(
-    (field) =>
-      `<${field.component} source='${field.value}'${
-        field.choices ? ` choices={${JSON.stringify(field.choices)}}` : ""
-      } />`
-  );
 
   return {
     listView: listViewFields,
