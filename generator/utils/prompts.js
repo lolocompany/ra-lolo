@@ -11,21 +11,32 @@ export const promptResourceDetails = async () => {
   return resource;
 };
 
-export const promptFieldSelection = async (stringProperties) => {
+export const promptFieldSelection = async (properties) => {
   const { selectedFields } = await inquirer.prompt([
     {
       type: "checkbox",
       name: "selectedFields",
       message: "Select the components you want to add to the Datagrid:",
-      choices: stringProperties.map((prop) => ({
-        name: `<TextField source='${prop.value}' />`,
-        value: prop.value,
+      choices: properties.map((prop) => ({
+        name: `${prop.name} (${prop.component})`,
+        value: prop,
       })),
     },
   ]);
 
-  const listViewFields = selectedFields.map((field) => `<TextField source='${field}' />`);
-  const createViewFields = selectedFields.map((field) => `<TextInput source='${field}' />`);
+  const listViewFields = selectedFields.map((field) => {
+    const listViewComponent =
+      field.component === "DateTimeInput"
+        ? "DateField"
+        : field.component.replace("Input", "Field");
+    return `<${listViewComponent} source='${field.value}' />`;
+  });
+  const createViewFields = selectedFields.map(
+    (field) =>
+      `<${field.component} source='${field.value}'${
+        field.choices ? ` choices={${JSON.stringify(field.choices)}}` : ""
+      } />`
+  );
 
   return {
     listView: listViewFields,
