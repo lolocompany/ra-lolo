@@ -64,32 +64,28 @@ export default function transform(
     return root.source;
   }
 
-  // Wrap listView components in a fragment for the Datagrid
-  const listViewComponents = `<>${selectedComponents.listView.join("")}</>`;
-  const listViewChildren = j(listViewComponents).find(j.JSXElement).nodes();
+  // Use j.template to parse components individually and add line breaks
+  const formatComponents = (components) =>
+    components
+      .map((component) => j.template.statement([component]).expression)
+      .flatMap((component) => [j.jsxText("\n    "), component]);
 
-  // Wrap createView components in a fragment for the Create node
-  const createViewComponents = `<>${selectedComponents.createView.join("")}</>`;
-  const createViewChildren = j(createViewComponents).find(j.JSXElement).nodes();
+  const listViewChildren = [
+    ...formatComponents(selectedComponents.listView),
+    j.jsxText("\n  "),
+  ];
 
-  if (!listViewChildren.length) {
-    console.log("No valid JSX elements found in selectedComponents.listView.");
-    return root.source;
-  }
-
-  if (!createViewChildren.length) {
-    console.log(
-      "No valid JSX elements found in selectedComponents.createView."
-    );
-    return root.source;
-  }
+  const createViewChildren = [
+    ...formatComponents(selectedComponents.createView),
+    j.jsxText("\n  "),
+  ];
 
   // Insert listView components as children inside the Datagrid
-  datagridNode.get(0).node.children.push(...listViewChildren);
+  datagridNode.get(0).node.children = listViewChildren;
 
   // Insert createView components as children inside the Create node
-  createNode.get(0).node.children.push(...createViewChildren);
+  createNode.get(0).node.children = createViewChildren;
 
-  // Return the updated source code
-  return root.toSource();
+  // Return the updated source code with proper formatting
+  return root.toSource({ quote: "single", reuseWhitespace: false });
 }
