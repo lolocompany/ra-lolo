@@ -1,6 +1,6 @@
 import { program } from 'commander';
 import { promptResourceDetails, promptFieldSelection } from '../utils/prompts.js';
-import { getSchema, getStringProperties } from '../services/schemaService.js';
+import { getProperties, getSchema } from '../services/schemaService.js';
 import { applyTransformation } from '../services/transformService.js';
 import { APP_FILE_PATH } from '../utils/filePaths.js';
 import fs from 'fs';
@@ -14,7 +14,7 @@ export const addResourceFieldsCommand = () => {
         const resource = await promptResourceDetails();
         const schema = await getSchema(resource);
         
-        const stringProperties = getStringProperties(schema);
+        const stringProperties = getProperties(schema);
         const selectedComponents = await promptFieldSelection(stringProperties);
 
         const sourceCode = fs.readFileSync(APP_FILE_PATH, "utf-8");
