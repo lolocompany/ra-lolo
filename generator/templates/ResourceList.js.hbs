@@ -1,14 +1,13 @@
-import React from 'react';
-import { List, Datagrid, TextField, EditButton } from 'react-admin';
-
-const {{pascalCase resourceName}}List = (props) => (
-  <List {...props}>
-    <Datagrid>
-      <TextField source="id" />
-      <TextField source="name" />
-      <EditButton />
-    </Datagrid>
-  </List>
-);
-
-export default {{pascalCase resourceName}}List;
+import React from 'react'; import { List, Datagrid,
+{{#each components}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+} from 'react-admin'; const
+{{resourceName}}List = (props) => (
+<List {...props}>
+  <Datagrid>
+    {{#each datagridComponents}}
+      {{{this}}}
+    {{/each}}
+  </Datagrid>
+</List>
+); export default
+{{resourceName}}List;
