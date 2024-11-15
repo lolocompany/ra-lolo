@@ -1,0 +1,12 @@
+import React from 'react';
+import { Show, SimpleShowLayout, TextField } from 'react-admin';
+
+const {{pascalCase resourceName}}View = (props) => (
+  <Show {...props}>
+    <SimpleShowLayout>
+      <TextField source="name" />
+    </SimpleShowLayout>
+  </Show>
+);
+
+export default {{pascalCase resourceName}}View;

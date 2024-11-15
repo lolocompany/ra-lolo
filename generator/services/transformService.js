@@ -1,5 +1,5 @@
 import jscodeshift from "jscodeshift";
-import transform from "../addDatagridFields.js";
+import transform from "../services/injectFields.js";
 
 export const applyTransformation = (
   sourceCode,
