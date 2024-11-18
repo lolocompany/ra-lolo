@@ -9,9 +9,11 @@ export function addResource(filePath, resourceName, importPath) {
   const j = jscodeshift;
   const root = j(source);
 
-  const importExists = root.find(j.ImportDeclaration, {
-    source: { value: importPath },
-  }).size();
+  const importExists = root
+    .find(j.ImportDeclaration, {
+      source: { value: importPath },
+    })
+    .size();
 
   if (!importExists) {
     const importDeclaration = j.importDeclaration(
@@ -30,7 +32,9 @@ export function addResource(filePath, resourceName, importPath) {
     .find(j.JSXElement, {
       openingElement: {
         name: { name: "Resource" },
-        attributes: [{ name: { name: "name" }, value: { value: `${resourceName}s` } }],
+        attributes: [
+          { name: { name: "name" }, value: { value: `${resourceName}s` } },
+        ],
       },
     })
     .size();
@@ -41,13 +45,19 @@ export function addResource(filePath, resourceName, importPath) {
     });
 
     if (adminNode.size() > 0) {
-      
-      const templatePath = path.resolve("./templates/resourceComponent.jsx.hbs");
+      const templatePath = path.resolve(
+        "./templates/resourceComponent.jsx.hbs"
+      );
       const templateContent = fs.readFileSync(templatePath, "utf-8");
+      Handlebars.registerHelper("openBrace", function () {
+        return "{";
+      });
       const resourceTemplate = Handlebars.compile(templateContent);
 
-      const resourceCode = resourceTemplate({ resourceName: pascalCase(resourceName) });
-
+      const resourceCode = resourceTemplate({
+        resourceName: `${resourceName.toLowerCase()}s`,
+        componentName: pascalCase(resourceName),
+      });
       const resourceElement = j(resourceCode).nodes();
 
       adminNode.forEach((path) => {
