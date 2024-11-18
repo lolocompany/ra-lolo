@@ -14,7 +14,7 @@ export function generateFiles(resourceName, components, projectPath = "./output"
   const resourceNamePascalCase = pascalCase(resourceName);
   const templateDir = "./templates/resource";
   const outputDir = projectPath;
-  const resourceDir = join(outputDir, resourceName);
+  const resourceDir = join(outputDir, `${resourceName}s`);
 
   try {
     if (!existsSync(resourceDir)) {

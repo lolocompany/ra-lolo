@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-export const promptResourceDetails = async () => {
+export const resourcePrompt = async () => {
   const { resource } = await inquirer.prompt([
     {
       type: "input",

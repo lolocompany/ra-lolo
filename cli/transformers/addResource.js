@@ -18,10 +18,10 @@ export function addResource(filePath, resourceName, importPath) {
   if (!importExists) {
     const importDeclaration = j.importDeclaration(
       [
-        j.importSpecifier(j.identifier("ProfileList")),
-        j.importSpecifier(j.identifier("ProfileCreate")),
-        j.importSpecifier(j.identifier("ProfileShow")),
-        j.importSpecifier(j.identifier("ProfileEdit")),
+        j.importSpecifier(j.identifier(`${pascalCase(resourceName)}List`)),
+        j.importSpecifier(j.identifier(`${pascalCase(resourceName)}Create`)),
+        j.importSpecifier(j.identifier(`${pascalCase(resourceName)}Edit`)),
+        j.importSpecifier(j.identifier(`${pascalCase(resourceName)}Show`)),
       ],
       j.literal(importPath)
     );

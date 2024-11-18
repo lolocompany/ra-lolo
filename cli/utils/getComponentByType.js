@@ -80,17 +80,17 @@ export const getComponentByType = (property, fieldName) => {
           if (property.items.type === "string" && property.items.enum) {
             return {
               create: "CheckboxGroupInput",
-              list: "TextField",
+              list: "ChipField",
               edit: "CheckboxGroupInput",
-              show: "TextField",
+              show: "ChipField",
               choices: property.items.enum.map((value) => ({ id: value, name: value })),
             };
           }
           return {
             create: "ArrayInput",
-            list: "TextField",
+            list: null,
             edit: "ArrayInput",
-            show: "TextField",
+            show: "ArrayField",
             choices: "<SimpleFormIterator><TextInput /></SimpleFormIterator>",
           };
         }
