@@ -1,81 +1,71 @@
 export const generateAllFields = (properties) => {
-  const listViewFields = properties
-    .filter(
-      (field) =>
-        field.component !== "NestedObjectSection" &&
-        field.component !== "ArrayObjectSimpleFormIterator"
-    )
-    .map((field) => {
-      if (field.component === "ReferenceInput") {
-        return `<ReferenceField source="${
-          field.value
-        }" reference="${field.value.replace(/Id$/, "s")}">
-            <TextField source="name" />
-          </ReferenceField>`;
-      }
-
-      const isArrayEnum = field.component === "CheckboxGroupInput";
-      const listViewComponent = isArrayEnum
-        ? "ChipField"
-        : field.component === "DateTimeInput"
-        ? "DateField"
-        : field.component.replace("Input", "Field");
-
-      return `<${listViewComponent} source="${field.value}" />`;
-    });
-
-  const createViewFields = properties.map((field) => {
+  return properties.map((field) => {
+    // Handle NestedObjectSection
     if (field.component === "NestedObjectSection") {
-      return (
-        `<>` +
-        `<h3>${field.name}</h3>` +
-        `${field.properties
-          .map(
-            (nestedField) =>
-              `<${nestedField.component} source='${nestedField.value}' />`
-          )
-          .join("\n")}` +
-        `</>`
-      );
+      const nestedFields = field.properties
+        .map(
+          (nestedField) =>
+            `<${nestedField.component} source="${nestedField.value}" />`
+        )
+        .join("\n");
+      return `<> 
+        <h3>${field.name}</h3>
+        ${nestedFields}
+      </>`;
     }
 
+    // Handle ArrayObjectSimpleFormIterator
     if (field.component === "ArrayObjectSimpleFormIterator") {
-      return (
-        `<>` +
-        `<ArrayInput source="${field.value}">` +
-        `<SimpleFormIterator>` +
-        `${field.properties
-          .map(
-            (nestedField) =>
-              `<${nestedField.component} source="${nestedField.value}" />`
-          )
-          .join("\n")}` +
-        `</SimpleFormIterator>` +
-        `</ArrayInput>` +
-        `</>`
-      );
+      const nestedFields = field.properties
+        .map(
+          (nestedField) =>
+            `<${nestedField.component} source="${nestedField.value}" />`
+        )
+        .join("\n");
+      return `<> 
+        <ArrayInput source="${field.value}">
+          <SimpleFormIterator>
+            ${nestedFields}
+          </SimpleFormIterator>
+        </ArrayInput>
+      </>`;
     }
 
+    // Handle ReferenceField for listView
+    if (field.component === "ReferenceField") {
+      return `<ReferenceField source="${field.value}" reference="${field.value.replace(
+        /Id$/,
+        "s"
+      )}">
+        <TextField source="name" />
+      </ReferenceField>`;
+    }
+
+    // Handle ReferenceInput for createView
     if (field.component === "ReferenceInput") {
-      return `<ReferenceInput source="${
-        field.value
-      }" reference="${field.value.replace(/Id$/, "s")}">
-          <SelectInput optionText="name" />
-        </ReferenceInput>`;
+      return `<ReferenceInput source="${field.value}" reference="${field.value.replace(
+        /Id$/,
+        "s"
+      )}">
+        <SelectInput optionText="name" />
+      </ReferenceInput>`;
     }
 
-    const isArrayEnum = field.component === "CheckboxGroupInput";
-    return isArrayEnum
-      ? `<CheckboxGroupInput source='${field.value}' choices={${JSON.stringify(
-          field.choices
-        )}} />`
-      : `<${field.component} source='${field.value}'${
-          field.choices ? ` choices={${JSON.stringify(field.choices)}}` : ""
-        } />`;
-  });
+    // Handle CheckboxGroupInput for createView
+    if (field.component === "CheckboxGroupInput") {
+      return `<CheckboxGroupInput source="${field.value}" choices={${JSON.stringify(
+        field.choices
+      )}} />`;
+    }
 
-  return {
-    listView: listViewFields,
-    createView: createViewFields,
-  };
+    // Handle CheckboxGroupField for listView
+    if (field.component === "CheckboxGroupField") {
+      return `<ChipField source="${field.value}" />`;
+    }
+
+    // Handle other components
+    return `<${field.component} source="${field.value}"${
+      field.choices ? ` choices={${JSON.stringify(field.choices)}}` : ""
+    } />`;
+  });
 };

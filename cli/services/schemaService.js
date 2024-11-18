@@ -3,102 +3,143 @@ import fs from "fs";
 
 const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
 
+const createViewExcludeFields = [
+  "createdAt",
+  "updatedAt",
+  "createdBy",
+  "updatedBy",
+  "id",
+];
+const listViewExcludeFields = [
+  "createdAt",
+  "updatedAt",
+  "createdBy",
+  "updatedBy",
+  "id",
+];
+
 export const getSchema = async (resource) => {
   const url = `${config.BASE_URL}/schemas/${resource}`;
   return await apiClient(url);
 };
 
 export const getProperties = (schema, parentKey = "") => {
-  const fields = [];
+  const createViewFields = [];
+  const listViewFields = [];
 
   Object.keys(schema.properties).forEach((key) => {
     const property = schema.properties[key];
     const fieldName = parentKey ? `${parentKey}.${key}` : key;
     const name = property.title || key;
-    let component;
+
+    let componentCreate;
+    let componentList;
     let choices;
 
     if (fieldName.endsWith("Id")) {
-      component = "ReferenceInput";
+      componentCreate = "ReferenceInput";
+      componentList = "ReferenceField";
       choices = "SelectInput";
     } else {
       switch (property.type) {
         case "string":
           if (property.enum) {
-            component = "SelectInput";
+            componentCreate = "SelectInput";
+            componentList = "TextField";
             choices = property.enum.map((value) => ({
               id: value,
               name: value,
             }));
           } else if (property.format === "email") {
-            component = "TextInput";
+            componentCreate = "TextInput";
+            componentList = "TextField";
             choices = { type: "email" };
           } else if (property.format === "uri") {
-            component = "TextInput";
+            componentCreate = "TextInput";
+            componentList = "TextField";
             choices = { type: "url" };
           } else if (property.format === "date") {
-            component = "DateInput";
+            componentCreate = "DateInput";
+            componentList = "DateField";
           } else if (property.format === "date-time") {
-            component = "DateTimeInput";
+            componentCreate = "DateTimeInput";
+            componentList = "DateField";
           } else {
-            component = "TextInput";
+            componentCreate = "TextInput";
+            componentList = "TextField";
           }
           break;
         case "boolean":
-          component = "BooleanInput";
+          componentCreate = "BooleanInput";
+          componentList = "BooleanField";
           break;
         case "number":
         case "integer":
-          component = "NumberInput";
+          componentCreate = "NumberInput";
+          componentList = "NumberField";
           break;
         case "array":
           if (property.items) {
             if (property.items.type === "string" && property.items.enum) {
-              component = "CheckboxGroupInput";
+              componentCreate = "CheckboxGroupInput";
               choices = property.items.enum.map((value) => ({
                 id: value,
                 name: value,
               }));
             } else if (property.items.type === "string") {
-              component = "ArrayInput";
+              componentCreate = "ArrayInput";
               choices =
                 "<SimpleFormIterator><TextInput /></SimpleFormIterator>";
             } else if (property.items.type === "object") {
               const nestedFields = getProperties(property.items, fieldName);
-              fields.push({
+              createViewFields.push({
                 name,
                 value: fieldName,
                 component: "ArrayObjectSimpleFormIterator",
-                properties: nestedFields,
+                properties: nestedFields.createViewFields,
               });
+           
               return;
             } else {
-              component = "ArrayInput";
+              componentCreate = "ArrayInput";
+              componentList = "TextField";
               choices =
                 "<SimpleFormIterator>{ /* other inputs */ }</SimpleFormIterator>";
             }
           }
           break;
         case "object":
-          fields.push({
+          const nestedFields = getProperties(property, fieldName);
+          createViewFields.push({
             name,
             value: fieldName,
             component: "NestedObjectSection",
-            properties: getProperties(property, fieldName),
+            properties: nestedFields.createViewFields,
           });
           return;
         default:
-          component = "TextInput";
+          componentCreate = "TextInput";
+          componentList = "TextField";
       }
     }
 
-    fields.push({
-      name,
-      value: fieldName,
-      component,
-      ...(choices && { choices }),
-    });
+    if (!createViewExcludeFields.includes(fieldName)) {
+      createViewFields.push({
+        name,
+        value: fieldName,
+        component: componentCreate,
+        ...(choices && { choices }),
+      });
+    }
+
+    if (!listViewExcludeFields.includes(fieldName)) {
+      listViewFields.push({
+        name,
+        value: fieldName,
+        component: componentList,
+      });
+    }
   });
 
-  return fields;
+  return { createViewFields, listViewFields };
 };
