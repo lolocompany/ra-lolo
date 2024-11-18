@@ -1,0 +1,13 @@
+import React from 'react';
+
+const {{resourceName}}Create = (props) => (
+  <Create {...props}>
+    <SimpleForm>
+    {{#each components.createView}}
+      {{{this}}}
+    {{/each}}
+    </SimpleForm>
+  </Create>
+);
+
+export default {{resourceName}}Create;

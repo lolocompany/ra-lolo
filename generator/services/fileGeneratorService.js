@@ -1,21 +1,69 @@
-import { readFileSync, writeFileSync } from "fs";
+import {
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+} from "fs";
+import { join, basename } from "path";
 import handlebars from "handlebars";
+import { pascalCase } from "change-case";
+import { fixImports } from '../utils/fixImport.js'
+export function generateFiles(
+  resourceName,
+  components,
+  projectPath
+) {
+  const pascalCasepascalCase = pascalCase(resourceName)
+  const templateDir = "./templates/resource";
+  const outputDir = projectPath || "./output";
 
-export function generateResourceList(components, datagridComponents) {
-  const templatePath = "./templates/ResourceList.js.hbs";
-  const outputPath = "./output.js";
+  // Create a subdirectory for the specific resource
+  const resourceDir = join(outputDir, resourceName);
 
   try {
-    const templateContent = readFileSync(templatePath, "utf-8");
-    const template = handlebars.compile(templateContent);
+    // Ensure the resource-specific directory exists
+    if (!existsSync(resourceDir)) {
+      mkdirSync(resourceDir, { recursive: true });
+    }
 
-    const inputData = { components, datagridComponents };
-    const outputContent = template(inputData);
+    // Read all template files in the directory
+    const templateFiles = readdirSync(templateDir);
 
-    writeFileSync(outputPath, outputContent, "utf-8");
+    templateFiles.forEach((file) => {
+      const templatePath = join(templateDir, file);
 
-    console.log(`File generated at: ${outputPath}`);
+      // Determine the output filename
+      const baseFileName = basename(file, ".hbs"); // Remove .hbs extension
+      const newFileName = baseFileName.includes("Resource")
+        ? baseFileName.replace("Resource", pascalCasepascalCase) // Replace "Resource" with resourceName
+        : baseFileName; // Keep the original name if "Resource" is not present
+
+      const outputPath = join(resourceDir, `${newFileName}`);
+
+      // Check if the file already exists
+      if (existsSync(outputPath)) {
+        console.log(`File already exists: ${outputPath}, skipping...`);
+        return; // Skip file generation if it exists
+      }
+
+      // Read the template content
+      const templateContent = readFileSync(templatePath, "utf-8");
+      const template = handlebars.compile(templateContent);
+
+      // Input data for the template
+      const inputData = { resourceName: pascalCasepascalCase, components };
+
+      // Generate output content
+      const outputContent = template(inputData);
+      const importFixed = fixImports(outputContent)
+
+      // Write to the output file
+      writeFileSync(outputPath, importFixed, "utf-8");
+
+      console.log(`File generated: ${outputPath}`);
+    });
   } catch (error) {
-    console.error("Error generating resource list:", error);
+    console.error("Error generating files:", error);
   }
 }
