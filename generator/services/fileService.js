@@ -8,7 +8,7 @@ import {
 import { join, basename } from "path";
 import handlebars from "handlebars";
 import { pascalCase } from "change-case";
-import { fixImports } from "../utils/fixImport.js";
+import { fixImports } from "../transformers/fixImport.js";
 
 export function generateFiles(resourceName, components, projectPath = "./output") {
   const resourceNamePascalCase = pascalCase(resourceName);
