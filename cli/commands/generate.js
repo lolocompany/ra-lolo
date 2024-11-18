@@ -1,10 +1,10 @@
 import { promptProjectPath, promptResourceDetails } from "../prompts/index.js";
-import { generateFiles } from "../services/fileService.js";
-import { generateAllFields } from "../services/genereateFIeldsService.js";
+import { generateFiles } from "../services/compileService.js";
+import { generateAllFields } from "../services/componentService.js";
 import { getProperties, getSchema } from "../services/schemaService.js";
 import { addResource } from "../transformers/addResource.js";
 
-export const addResourceFieldsCommand = async () => {
+export const generate = async () => {
   try {
     const resource = await promptResourceDetails();
     const schema = await getSchema(resource);

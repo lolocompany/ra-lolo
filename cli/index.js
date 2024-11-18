@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-import { addResourceFieldsCommand } from "./commands/index.js";
+import { generate } from "./commands/generate.js";
 
 const main = async () => {
   try {
@@ -17,7 +17,7 @@ const main = async () => {
 
     switch (action) {
       case "Add a new resource":
-        addResourceFieldsCommand();
+        generate();
         break;
       case "Exit":
         console.log("Goodbye!");
