@@ -9,11 +9,17 @@ export const generate = async () => {
     const resource = await promptResourceDetails();
     const schema = await getSchema(resource);
     const projectPath = await promptProjectPath();
-    const { create, list } = getProperties(schema);
+    const { create, list, edit, show } = getProperties(schema);
     const listView = generateAllFields(list);
     const createView = generateAllFields(create);
+    const editView = generateAllFields(edit);
+    const showView = generateAllFields(show);
 
-    generateFiles(resource, { listView, createView }, projectPath);
+    generateFiles(
+      resource,
+      { listView, createView, editView, showView },
+      projectPath
+    );
     addResource(`${projectPath}/App.js`, resource, `./${resource}`);
     console.log(`Selected fields added to the '${resource}' resource.`);
   } catch (error) {
