@@ -9,9 +9,9 @@ export const generate = async () => {
     const resource = await promptResourceDetails();
     const schema = await getSchema(resource);
     const projectPath = await promptProjectPath();
-    const { createViewFields, listViewFields } = getProperties(schema);
-    const listView = generateAllFields(listViewFields);
-    const createView = generateAllFields(createViewFields);
+    const { create, list } = getProperties(schema);
+    const listView = generateAllFields(list);
+    const createView = generateAllFields(create);
 
     generateFiles(resource, { listView, createView }, projectPath);
     addResource(`${projectPath}/App.js`, resource, `./${resource}`);

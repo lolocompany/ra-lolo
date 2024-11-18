@@ -1,6 +1,4 @@
-import fs from "fs";
-
-const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
+import { config } from "../utils/config.js";
 
 const defaultRequestOptions = {
   method: "GET",
