@@ -13,7 +13,7 @@ export const generate = async () => {
     const selectedComponents = generateAllFields(stringProperties);
 
     generateFiles(resource, selectedComponents, projectPath);
-    addResource(`${projectPath}/App.js`, `${resource}s`, `./${resource}`);
+    addResource(`${projectPath}/App.js`, resource, `./${resource}`);
     console.log(`Selected fields added to the '${resource}' resource.`);
   } catch (error) {
     console.error("An error occurred:", error);

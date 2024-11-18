@@ -1,7 +1,10 @@
 import { apiClient } from "../api/apiClient.js";
+import fs from "fs";
+
+const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
 
 export const getSchema = async (resource) => {
-  const url = `https://api.dev.pvpc.io/i6JWTiQBFYV611VcNNWQLZ/schemas/${resource}`;
+  const url = `${config.BASE_URL}/schemas/${resource}`;
   return await apiClient(url);
 };
 
