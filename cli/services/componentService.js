@@ -1,4 +1,4 @@
-export const generateAllFields = (properties) => {
+export const generateFields = (properties, disableChoices = false) => {
   return properties.map((field) => {
     // Handle NestedObjectSection
     if (field.component === "NestedObjectSection") {
@@ -33,29 +33,27 @@ export const generateAllFields = (properties) => {
 
     // Handle ReferenceField for listView
     if (field.component === "ReferenceField") {
-      return `<ReferenceField source="${field.value}" reference="${field.value.replace(
-        /Id$/,
-        "s"
-      )}">
+      return `<ReferenceField source="${
+        field.value
+      }" reference="${field.value.replace(/Id$/, "s")}">
         <TextField source="name" />
       </ReferenceField>`;
     }
 
     // Handle ReferenceInput for createView
     if (field.component === "ReferenceInput") {
-      return `<ReferenceInput source="${field.value}" reference="${field.value.replace(
-        /Id$/,
-        "s"
-      )}">
+      return `<ReferenceInput source="${
+        field.value
+      }" reference="${field.value.replace(/Id$/, "s")}">
         <SelectInput optionText="name" />
       </ReferenceInput>`;
     }
 
     // Handle CheckboxGroupInput for createView
     if (field.component === "CheckboxGroupInput") {
-      return `<CheckboxGroupInput source="${field.value}" choices={${JSON.stringify(
-        field.choices
-      )}} />`;
+      return `<CheckboxGroupInput source="${field.value}"${
+        !disableChoices ? ` choices={${JSON.stringify(field.choices)}}` : ""
+      } />`;
     }
 
     // Handle CheckboxGroupField for listView
@@ -65,7 +63,9 @@ export const generateAllFields = (properties) => {
 
     // Handle other components
     return `<${field.component} source="${field.value}"${
-      field.choices ? ` choices={${JSON.stringify(field.choices)}}` : ""
+      field.choices && !disableChoices
+        ? ` choices={${JSON.stringify(field.choices)}}`
+        : ""
     } />`;
   });
 };

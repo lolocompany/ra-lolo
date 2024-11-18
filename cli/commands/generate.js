@@ -1,28 +1,19 @@
 import { promptProjectPath, promptResourceDetails } from "../prompts/index.js";
-import { generateFiles } from "../services/compileService.js";
-import { generateAllFields } from "../services/componentService.js";
-import { getProperties, getSchema } from "../services/schemaService.js";
-import { addResource } from "../transformers/addResource.js";
+import { getSchema } from "../services/schemaService.js";
+import { createViewComponents, saveGeneratedResource } from "../utils/saveUtil.js";
 
 export const generate = async () => {
   try {
     const resource = await promptResourceDetails();
-    const schema = await getSchema(resource);
     const projectPath = await promptProjectPath();
-    const { create, list, edit, show } = getProperties(schema);
-    const listView = generateAllFields(list);
-    const createView = generateAllFields(create);
-    const editView = generateAllFields(edit);
-    const showView = generateAllFields(show);
 
-    generateFiles(
-      resource,
-      { listView, createView, editView, showView },
-      projectPath
-    );
-    addResource(`${projectPath}/App.js`, resource, `./${resource}`);
-    console.log(`Selected fields added to the '${resource}' resource.`);
+    const schema = await getSchema(resource);
+    const views = createViewComponents(schema);
+
+    saveGeneratedResource(resource, views, projectPath);
+    
+    console.log(`Resource '${resource}' successfully generated and added.`);
   } catch (error) {
-    console.error("An error occurred:", error);
+    console.error("Error during resource generation:", error.message || error);
   }
 };
