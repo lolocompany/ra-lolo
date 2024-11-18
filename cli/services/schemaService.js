@@ -1,11 +1,11 @@
-import { apiClient } from "../utils/apiClient.js";
+import { apiClient } from "../api/apiClient.js";
 
 export const getSchema = async (resource) => {
   const url = `https://api.dev.pvpc.io/i6JWTiQBFYV611VcNNWQLZ/schemas/${resource}`;
   return await apiClient(url);
 };
 
-export const getProperties = (schema, parentKey = "", forListView = false) => {
+export const getProperties = (schema, parentKey = "") => {
   const fields = [];
 
   Object.keys(schema.properties).forEach((key) => {
@@ -16,14 +16,17 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
     let choices;
 
     if (fieldName.endsWith("Id")) {
-      component = forListView ? "ReferenceField" : "ReferenceInput";
-      choices = !forListView ? "SelectInput" : undefined;
+      component = "ReferenceInput";
+      choices = "SelectInput";
     } else {
       switch (property.type) {
         case "string":
           if (property.enum) {
             component = "SelectInput";
-            choices = property.enum.map((value) => ({ id: value, name: value }));
+            choices = property.enum.map((value) => ({
+              id: value,
+              name: value,
+            }));
           } else if (property.format === "email") {
             component = "TextInput";
             choices = { type: "email" };
@@ -49,10 +52,14 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
           if (property.items) {
             if (property.items.type === "string" && property.items.enum) {
               component = "CheckboxGroupInput";
-              choices = property.items.enum.map((value) => ({ id: value, name: value }));
+              choices = property.items.enum.map((value) => ({
+                id: value,
+                name: value,
+              }));
             } else if (property.items.type === "string") {
               component = "ArrayInput";
-              choices = "<SimpleFormIterator><TextInput /></SimpleFormIterator>";
+              choices =
+                "<SimpleFormIterator><TextInput /></SimpleFormIterator>";
             } else if (property.items.type === "object") {
               const nestedFields = getProperties(property.items, fieldName);
               fields.push({
@@ -64,12 +71,12 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
               return;
             } else {
               component = "ArrayInput";
-              choices = "<SimpleFormIterator>{ /* other inputs */ }</SimpleFormIterator>";
+              choices =
+                "<SimpleFormIterator>{ /* other inputs */ }</SimpleFormIterator>";
             }
           }
           break;
         case "object":
-          if (forListView) return;
           fields.push({
             name,
             value: fieldName,
