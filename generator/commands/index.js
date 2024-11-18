@@ -1,8 +1,8 @@
-import { promptResourceDetails, promptProjectPath } from "../utils/prompts.js";
-import { addResource } from "../utils/addResource.js";
-import { getProperties, getSchema } from "../services/schemaService.js";
+import { promptProjectPath, promptResourceDetails } from "../prompts/index.js";
+import { generateFiles } from "../services/fileService.js";
 import { generateAllFields } from "../services/genereateFIeldsService.js";
-import { generateFiles } from "../services/fileGeneratorService.js";
+import { getProperties, getSchema } from "../services/schemaService.js";
+import { addResource } from "../transformers/addResource.js";
 import { APP_FILE_PATH } from "../utils/filePaths.js";
 
 export const addResourceFieldsCommand = async () => {

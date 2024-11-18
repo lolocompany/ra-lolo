@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-import { addResourceFieldsCommand } from "./commands/addResource.js";
+import { addResourceFieldsCommand } from "./commands/index.js";
 
 const main = async () => {
   try {
