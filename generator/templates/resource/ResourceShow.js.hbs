@@ -1,0 +1,13 @@
+import React from 'react';
+
+const {{resourceName}}Show = (props) => (
+<Show {...props}>
+  <SimpleShowLayout>
+    {{#each components.listView}}
+      {{{this}}}
+    {{/each}}
+  </SimpleShowLayout>
+</Show>
+);
+
+export default {{resourceName}}Show;

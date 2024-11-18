@@ -1,0 +1,13 @@
+import React from 'react';
+
+const {{resourceName}}Edit = (props) => (
+  <Edit {...props}>
+    <SimpleForm>
+    {{#each components.createView}}
+      {{{this}}}
+    {{/each}}
+    </SimpleForm>
+  </Edit>
+);
+
+export default {{resourceName}}Edit;
