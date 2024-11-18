@@ -10,7 +10,6 @@ export const addResourceFieldsCommand = async () => {
     const resource = await promptResourceDetails();
     const schema = await getSchema(resource);
     const projectPath = await promptProjectPath();
-
     const stringProperties = getProperties(schema);
     const selectedComponents = generateAllFields(stringProperties);
 

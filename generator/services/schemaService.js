@@ -16,15 +16,9 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
     let choices;
 
     if (fieldName.endsWith("Id")) {
-     
-      if (forListView) {
-        component = "ReferenceField";
-      } else {
-        component = "ReferenceInput";
-        choices = "SelectInput";
-      }
+      component = forListView ? "ReferenceField" : "ReferenceInput";
+      choices = !forListView ? "SelectInput" : undefined;
     } else {
-      
       switch (property.type) {
         case "string":
           if (property.enum) {
@@ -44,16 +38,13 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
             component = "TextInput";
           }
           break;
-
         case "boolean":
           component = "BooleanInput";
           break;
-
         case "number":
         case "integer":
           component = "NumberInput";
           break;
-
         case "array":
           if (property.items) {
             if (property.items.type === "string" && property.items.enum) {
@@ -67,7 +58,7 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
               fields.push({
                 name,
                 value: fieldName,
-                component: "ArrayObjectSimpleFormIterator", // Custom marker for array of objects
+                component: "ArrayObjectSimpleFormIterator",
                 properties: nestedFields,
               });
               return;
@@ -77,10 +68,8 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
             }
           }
           break;
-
         case "object":
           if (forListView) return;
-
           fields.push({
             name,
             value: fieldName,
@@ -88,7 +77,6 @@ export const getProperties = (schema, parentKey = "", forListView = false) => {
             properties: getProperties(property, fieldName),
           });
           return;
-
         default:
           component = "TextInput";
       }
