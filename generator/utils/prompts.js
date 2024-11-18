@@ -10,6 +10,7 @@ export const promptResourceDetails = async () => {
   ]);
   return resource;
 };
+
 export const promptProjectPath = async () => {
   const { projectPath } = await inquirer.prompt([
     {

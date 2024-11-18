@@ -4,7 +4,7 @@ export const generateAllFields = (properties) => {
       (field) =>
         field.component !== "NestedObjectSection" &&
         field.component !== "ArrayObjectSimpleFormIterator"
-    ) // Exclude nested objects and array of objects from List view
+    )
     .map((field) => {
       if (field.component === "ReferenceInput") {
         return `<ReferenceField source="${
