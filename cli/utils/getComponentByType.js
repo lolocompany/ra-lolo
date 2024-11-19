@@ -90,7 +90,7 @@ export const getComponentByType = (property, fieldName) => {
             create: "ArrayObjectSimpleFormIterator",
             list: null,
             edit: "ArrayObjectSimpleFormIterator",
-            show: "ArrayObjectSimpleFormIterator",
+            show: null,
             items: property.items
           };
         }
