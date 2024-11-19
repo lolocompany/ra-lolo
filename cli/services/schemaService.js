@@ -38,6 +38,25 @@ export const getProperties = (schema, parentKey = "") => {
           });
         }
       });
+    } else if (
+      property.type === "array" &&
+      property.items &&
+      property.items.type === "object"
+    ) {
+      const nestedViews = getProperties(property.items, fieldName);
+      Object.entries(views).forEach(([view, fields]) => {
+        if (
+          !EXCLUDE_FIELDS[view].includes(fieldName) &&
+          components[view] !== null
+        ) {
+          fields.push({
+            name,
+            value: fieldName,
+            component: components[view],
+            items: nestedViews[view],
+          });
+        }
+      });
     } else {
       Object.entries(views).forEach(([view, fields]) => {
         if (

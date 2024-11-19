@@ -16,16 +16,10 @@ export const generateFields = (properties, disableChoices = false) => {
 
     // Handle ArrayObjectSimpleFormIterator
     if (field.component === "ArrayObjectSimpleFormIterator") {
-      const nestedFields = field.properties
-        .map(
-          (nestedField) =>
-            `<${nestedField.component} source="${nestedField.value}" />`
-        )
-        .join("\n");
       return `<> 
         <ArrayInput source="${field.value}">
           <SimpleFormIterator>
-            ${nestedFields}
+            ${generateFields(field.items).join("\n")}
           </SimpleFormIterator>
         </ArrayInput>
       </>`;
