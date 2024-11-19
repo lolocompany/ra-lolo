@@ -87,11 +87,11 @@ export const getComponentByType = (property, fieldName) => {
             };
           }
           return {
-            create: "ArrayInput",
+            create: "ArrayObjectSimpleFormIterator",
             list: null,
-            edit: "ArrayInput",
-            show: "ArrayField",
-            choices: "<SimpleFormIterator><TextInput /></SimpleFormIterator>",
+            edit: "ArrayObjectSimpleFormIterator",
+            show: "ArrayObjectSimpleFormIterator",
+            items: property.items
           };
         }
         break;
