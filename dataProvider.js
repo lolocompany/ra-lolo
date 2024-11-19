@@ -15,12 +15,17 @@ class LoloDataProvider {
 
     const filters = Object.entries(params.filter || {}).reduce(
       (acc, [key, value]) => {
+        // Handle AutocompleteInput search query
+        if (key === "q") {
+          acc[`q[name]`] = value;
+          return acc;
+        }
         acc[`q[${key}]`] = value;
         return acc;
       },
       {}
     );
-
+  
     const query = {
       limit: perPage,
       sort: `${field} ${order.toLowerCase()}`,
