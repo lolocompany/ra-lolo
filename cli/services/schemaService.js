@@ -13,6 +13,7 @@ export const getProperties = (schema, parentKey = "") => {
     list: [],
     edit: [],
     show: [],
+    filter: [],
   };
 
   Object.keys(schema.properties).forEach((key) => {

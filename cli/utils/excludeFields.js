@@ -3,4 +3,5 @@ export const EXCLUDE_FIELDS = {
     list: ["createdAt", "updatedAt", "createdBy", "updatedBy", "id"],
     edit: ["createdAt", "updatedAt", "createdBy", "updatedBy", "id"],
     show: ["createdBy", "updatedBy"],
+    filter: []
   };
