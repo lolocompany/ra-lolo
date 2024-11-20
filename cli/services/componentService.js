@@ -39,7 +39,7 @@ export const generateFields = (properties, disableChoices = false) => {
       return `<ReferenceInput source="${
         field.value
       }" reference="${field.value.replace(/Id$/, "s")}">
-        <SelectInput optionText="name" />
+          <AutocompleteInput source="devices" optionText="name" />
       </ReferenceInput>`;
     }
 
