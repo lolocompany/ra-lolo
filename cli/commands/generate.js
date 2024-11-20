@@ -17,6 +17,6 @@ export const generate = async () => {
       console.log(`Resource '${resource}' successfully generated and added.`);
     }
   } catch (error) {
-    console.error("Error during resource generation:", error.message || error);
+    console.error("Error during resource generation:", error);
   }
 };
