@@ -1,5 +1,5 @@
 import { fetchUtils } from "react-admin";
-import { stringify } from "query-string";
+import queryString from "query-string";
 import userManager from "./userManager";
 
 class LoloDataProvider {
@@ -10,12 +10,10 @@ class LoloDataProvider {
 
   async getList(resource, params, additionalQueryParams = {}) {
     const { page = 1, perPage = 15 } = params.pagination || {};
-
     const { field = "createdAt", order = "desc" } = params.sort || {};
 
     const filters = Object.entries(params.filter || {}).reduce(
       (acc, [key, value]) => {
-        // Handle AutocompleteInput search query
         if (key === "q") {
           acc[`q[name]`] = value;
           return acc;
@@ -25,7 +23,7 @@ class LoloDataProvider {
       },
       {}
     );
-  
+
     const query = {
       limit: perPage,
       sort: `${field} ${order.toLowerCase()}`,
@@ -34,7 +32,7 @@ class LoloDataProvider {
       ...additionalQueryParams,
     };
 
-    const url = `/${resource}?${stringify(query)}`;
+    const url = `/${resource}?${queryString.stringify(query)}`;
     const { data } = await this.sendRequest(url);
     return this.buildListResponse(data, resource);
   }
@@ -111,7 +109,7 @@ class LoloDataProvider {
 
     if (data[itemsKey]) {
       return {
-        data: data[itemsKey],
+        data: data[itemsKey].map((item) => ({ id: item.id, ...item })),
         total: data.total,
       };
     } else if (Array.isArray(data)) {
@@ -143,8 +141,34 @@ const setLoloHeaders = async (options, selectedAccount) => {
   }
 };
 
-const dataProvider = (baseUrl, options) => {
-  return new LoloDataProvider(baseUrl, options);
+// Wrapper to match React-Admin's interface
+const raDataProvider = (baseUrl, options) => {
+  const loloProvider = new LoloDataProvider(baseUrl, options);
+
+  return {
+    getList: (resource, params) => loloProvider.getList(resource, params),
+    getOne: (resource, params) => loloProvider.getOne(resource, params),
+    getMany: (resource, params) => loloProvider.getMany(resource, params),
+    getManyReference: (resource, params) =>
+      loloProvider.getManyReference(resource, params),
+    create: (resource, params) => loloProvider.create(resource, params),
+    update: (resource, params) => loloProvider.update(resource, params),
+    updateMany: async (resource, params) => {
+      const promises = params.ids.map((id) =>
+        loloProvider.update(resource, { id, data: params.data })
+      );
+      await Promise.all(promises);
+      return { data: params.ids };
+    },
+    delete: (resource, params) => loloProvider.delete(resource, params),
+    deleteMany: async (resource, params) => {
+      const promises = params.ids.map((id) =>
+        loloProvider.delete(resource, { id })
+      );
+      await Promise.all(promises);
+      return { data: params.ids };
+    },
+  };
 };
 
-export default dataProvider;
+export default raDataProvider;
