@@ -1,6 +1,6 @@
 {
   "name": "@lolocompany/ra-lolo",
-  "version": "2.0.0-alpha.0",
+  "version": "1.0.0-alpha.0",
   "description": "A library to handle auth and data layer compatible with react-admin",
   "main": "dist/ra-lolo.cjs.js",
   "module": "dist/ra-lolo.es.js",
