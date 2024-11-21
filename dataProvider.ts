@@ -1,6 +1,6 @@
-import { fetchUtils } from 'react-admin';
-import { stringify } from 'query-string';
-import userManager from './userManager';
+import { fetchUtils } from "react-admin";
+import queryString from "query-string";
+import userManager from "./userManager";
 
 class LoloDataProvider {
   constructor(baseUrl, options = {}) {
@@ -9,20 +9,20 @@ class LoloDataProvider {
   }
 
   async getList(resource, params, additionalQueryParams = {}) {
-    const {
-      page = 1,
-      perPage = 15,
-    } = params.pagination || {};
+    const { page = 1, perPage = 15 } = params.pagination || {};
+    const { field = "createdAt", order = "desc" } = params.sort || {};
 
-    const {
-      field = 'createdAt',
-      order = 'desc',
-    } = params.sort || {};
-
-    const filters = Object.entries(params.filter || {}).reduce((acc, [key, value]) => {
-      acc[`q[${key}]`] = value;
-      return acc;
-    }, {});
+    const filters = Object.entries(params.filter || {}).reduce(
+      (acc, [key, value]) => {
+        if (key === "q") {
+          acc[`q[name]`] = value;
+          return acc;
+        }
+        acc[`q[${key}]`] = value;
+        return acc;
+      },
+      {}
+    );
 
     const query = {
       limit: perPage,
@@ -32,7 +32,7 @@ class LoloDataProvider {
       ...additionalQueryParams,
     };
 
-    const url = `/${resource}?${stringify(query)}`;
+    const url = `/${resource}?${queryString.stringify(query)}`;
     const { data } = await this.sendRequest(url);
     return this.buildListResponse(data, resource);
   }
@@ -66,7 +66,7 @@ class LoloDataProvider {
   create(resource, params) {
     const url = `/${resource}`;
     return this.sendRequest(url, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params.data),
     });
   }
@@ -74,7 +74,7 @@ class LoloDataProvider {
   update(resource, params) {
     const url = `/${resource}/${params.id}`;
     return this.sendRequest(url, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params.data),
     });
   }
@@ -82,10 +82,10 @@ class LoloDataProvider {
   delete(resource, params) {
     const url = `/${resource}/${params.id}`;
     return this.sendRequest(url, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
-
+  
   async deleteMany(resource, params) {
     for (const id of params.ids) {
       try {
@@ -100,8 +100,8 @@ class LoloDataProvider {
   }
 
   async sendRequest(url, options = {}) {
-    const fullUrl = url.startsWith('/') ? `${this.baseUrl}${url}` : url;
-    await setLoloHeaders(options);
+    const fullUrl = url.startsWith("/") ? `${this.baseUrl}${url}` : url;
+    await setLoloHeaders(options, this.options.selectedAccount);
 
     try {
       const { json: data } = await fetchUtils.fetchJson(fullUrl, options);
@@ -115,13 +115,14 @@ class LoloDataProvider {
   }
 
   buildListResponse(data, resource) {
-    const itemsKey = typeof this.options.itemsKey === 'function'
-      ? this.options.itemsKey(resource)
-      : this.options.itemsKey || 'items';
+    const itemsKey =
+      typeof this.options.itemsKey === "function"
+        ? this.options.itemsKey(resource)
+        : this.options.itemsKey || "items";
 
     if (data[itemsKey]) {
       return {
-        data: data[itemsKey],
+        data: data[itemsKey].map((item) => ({ id: item.id, ...item })),
         total: data.total,
       };
     } else if (Array.isArray(data)) {
@@ -135,26 +136,52 @@ class LoloDataProvider {
   }
 }
 
-const setLoloHeaders = async (options) => {
+const setLoloHeaders = async (options, selectedAccount) => {
   const user = await userManager.getUser();
   const token = user?.id_token;
-  const accountId = localStorage.getItem('accountId');
+  const accountId = selectedAccount || localStorage.getItem("accountId");
 
   if (!options.headers) {
     options.headers = new Headers();
   }
 
   if (token) {
-    options.headers.set('Authorization', `Bearer ${token}`);
+    options.headers.set("Authorization", `Bearer ${token}`);
   }
 
   if (accountId) {
-    options.headers.set('Lolo-Account-Id', accountId);
+    options.headers.set("Lolo-Account-Id", accountId);
   }
 };
 
-const dataProvider = (baseUrl, options) => {
-  return new LoloDataProvider(baseUrl, options);
+// Wrapper to match React-Admin's interface
+const raDataProvider = (baseUrl, options) => {
+  const loloProvider = new LoloDataProvider(baseUrl, options);
+
+  return {
+    getList: (resource, params) => loloProvider.getList(resource, params),
+    getOne: (resource, params) => loloProvider.getOne(resource, params),
+    getMany: (resource, params) => loloProvider.getMany(resource, params),
+    getManyReference: (resource, params) =>
+      loloProvider.getManyReference(resource, params),
+    create: (resource, params) => loloProvider.create(resource, params),
+    update: (resource, params) => loloProvider.update(resource, params),
+    updateMany: async (resource, params) => {
+      const promises = params.ids.map((id) =>
+        loloProvider.update(resource, { id, data: params.data })
+      );
+      await Promise.all(promises);
+      return { data: params.ids };
+    },
+    delete: (resource, params) => loloProvider.delete(resource, params),
+    deleteMany: async (resource, params) => {
+      const promises = params.ids.map((id) =>
+        loloProvider.delete(resource, { id })
+      );
+      await Promise.all(promises);
+      return { data: params.ids };
+    },
+  };
 };
 
-export default dataProvider;
+export default raDataProvider;

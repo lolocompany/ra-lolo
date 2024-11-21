@@ -1,57 +1,59 @@
-import userManager from './userManager';
+import userManager from "./userManager";
 
 class LoloAuthProvider {
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-
-  async login() {
+  async login(params) {
     const user = await userManager.getUser();
     if (!user || user.expired) {
       await userManager.signinRedirect();
     }
+    return Promise.resolve();
   }
 
-  async logout() {
+  async logout(params) {
     const user = await userManager.getUser();
 
     if (user) {
-      localStorage.removeItem('accountId');
-      userManager.signoutRedirect({
+      localStorage.removeItem("accountId");
+      await userManager.signoutRedirect({
         extraQueryParams: {
           client_id: userManager.settings.client_id,
           logout_uri: window.location.origin,
         },
       });
     }
+    return Promise.resolve();
   }
 
-  async checkAuth() {
+  async checkAuth(params) {
     const user = await userManager.getUser();
     if (user && !user.expired) {
-      return true;
+      return Promise.resolve();
     }
-    throw new Error('User is not authenticated');
+    await this.login(params);
+    return Promise.reject();
   }
 
   async checkError(error) {
-    if (error.status === 401 || error.status === 403) {
-      console.log('Authentication error', error.status);
+    if (error.status === 401) {
+      console.log("Authentication error", error.status);
+      return Promise.reject();
     }
+    return Promise.resolve();
   }
 
-  async getPermissions() {
+  async getPermissions(params) {
     // Implement permissions logic if needed
+    return Promise.resolve();
   }
 
   async getIdentity() {
     const user = await userManager.getUser();
-    if (!user) return;
+    if (!user) return Promise.reject();
 
-    return {
-      id: user.profile['cognito:username'],
-      fullName: user.profile['email'],
-    };
+    return Promise.resolve({
+      id: user.profile["cognito:username"],
+      fullName: user.profile["email"],
+    });
   }
 
   async handleCallback() {
@@ -61,14 +63,26 @@ class LoloAuthProvider {
         window.location.href = window.location.origin;
       }
     } catch (error) {
-      console.error('Error handling callback:', error);
+      console.error("Error handling callback:", error);
     }
     this.cleanupUrl();
+    return Promise.resolve();
   }
 
   cleanupUrl() {
-    window.history.replaceState({}, window.document.title, window.location.origin);
+    window.history.replaceState(
+      {},
+      window.document.title,
+      window.location.origin
+    );
+  }
+
+  async getToken() {
+    const user = await userManager.getUser();
+    return user ? user.id_token : null;
   }
 }
 
-export default (baseUrl) => new LoloAuthProvider(baseUrl);
+const authProviderInstance = new LoloAuthProvider();
+
+export default authProviderInstance;
