@@ -85,6 +85,19 @@ class LoloDataProvider {
       method: "DELETE",
     });
   }
+  
+  async deleteMany(resource, params) {
+    for (const id of params.ids) {
+      try {
+        await this.delete(resource, { id });
+      } catch (err) {
+        console.log('deleteMany error', err);
+      }
+    }
+    return {
+      data: params.ids
+    };
+  }
 
   async sendRequest(url, options = {}) {
     const fullUrl = url.startsWith("/") ? `${this.baseUrl}${url}` : url;
