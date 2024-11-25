@@ -1,6 +1,6 @@
 {
   "name": "@lolocompany/ra-lolo",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "A library to handle auth and data layer compatible with react-admin",
   "main": "index.js",
   "scripts": {
