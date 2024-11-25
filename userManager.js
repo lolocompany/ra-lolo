@@ -1,4 +1,4 @@
-import { UserManager } from "oidc-client-ts";
+import { UserManager, WebStorageStateStore } from "oidc-client-ts";
 
 const REDIRECT_URI = `${window.location.origin}/auth-callback`;
 const AUTHORITY_URI = 'https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_lQin10bBN'
@@ -10,6 +10,7 @@ const userManager = new UserManager({
   redirect_uri: REDIRECT_URI,
   response_type: "code",
   scope: 'openid',
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
 });
 
 export default userManager;
